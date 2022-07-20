@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use takeWhile" #-}
 
-module Main where
+module Main (main) where
 
 import qualified Data.Char           as C
 import qualified Data.List           as L
