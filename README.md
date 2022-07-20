@@ -1,6 +1,6 @@
 # Hack Assembler
 
-An Assmbler for Hack Assembly. ([nand2tetris](https://www.nand2tetris.org/))
+An Assembler for Hack Assembly. ([nand2tetris](https://www.nand2tetris.org/))
 
 ### Usage
 
