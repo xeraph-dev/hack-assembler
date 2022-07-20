@@ -1,7 +1,7 @@
 cabal-version:      3.0
 
 name:               hack-assembler
-version:            0.1.0.0
+version:            1.0.0
 
 category:           Language
 synopsis:           An Assembler for Hack Assembly
