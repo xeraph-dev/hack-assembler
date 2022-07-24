@@ -55,5 +55,6 @@ tests:
     source-dirs: test
     dependencies:
       - HackAssembler
+      - bytestring
       - hspec
     build-tools: hspec-discover
