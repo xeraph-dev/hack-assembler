@@ -38,12 +38,12 @@ tokens :-
 
 {
 data AlexUserState = AlexUserState
-  { lc :: Int
+  {
   }
 
 alexInitUserState :: AlexUserState
 alexInitUserState = AlexUserState
-  { lc = 0
+  {
   }
 
 get :: Alex AlexUserState
