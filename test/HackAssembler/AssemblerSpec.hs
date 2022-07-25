@@ -43,20 +43,6 @@ spec = do
     writeTest "test/files/rect/Rect.test.hack" hack'
     hack' `shouldBe` Right hack
 
-  it "PongL.asm" $ do
-    asm <- BS.readFile "test/files/pong/PongL.asm"
-    hack <- BS.readFile "test/files/pong/PongL.hack"
-    let hack' = assemble asm
-    writeTest "test/files/pong/PongL.test.hack" hack'
-    hack' `shouldBe` Right hack
-
-  it "Pong.asm" $ do
-    asm <- BS.readFile "test/files/pong/Pong.asm"
-    hack <- BS.readFile "test/files/pong/Pong.hack"
-    let hack' = assemble asm
-    writeTest "test/files/pong/Pong.test.hack" hack'
-    hack' `shouldBe` Right hack
-
 writeTest :: FilePath -> Either String ByteString -> IO ()
 writeTest _ (Left _)     = return ()
 writeTest path (Right p) = BS.writeFile path p
