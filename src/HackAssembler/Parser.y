@@ -21,10 +21,18 @@ import HackAssembler.Lexer (runAlex)
   M           { L.RangedToken (L.Identifier "M") _ }
   D           { L.RangedToken (L.Identifier "D") _ }
   DM          { L.RangedToken (L.Identifier "DM") _ }
+  MD          { L.RangedToken (L.Identifier "MD") _ }
   A           { L.RangedToken (L.Identifier "A") _ }
   AM          { L.RangedToken (L.Identifier "AM") _ }
+  MA          { L.RangedToken (L.Identifier "MA") _ }
   AD          { L.RangedToken (L.Identifier "AD") _ }
+  DA          { L.RangedToken (L.Identifier "DA") _ }
   ADM         { L.RangedToken (L.Identifier "ADM") _ }
+  AMD         { L.RangedToken (L.Identifier "AMD") _ }
+  DAM         { L.RangedToken (L.Identifier "DAM") _ }
+  MAD         { L.RangedToken (L.Identifier "MAD") _ }
+  DMA         { L.RangedToken (L.Identifier "DMA") _ }
+  MDA         { L.RangedToken (L.Identifier "MDA") _ }
 
   JGT         { L.RangedToken (L.Identifier "JGT") _ }
   JEQ         { L.RangedToken (L.Identifier "JEQ") _ }
@@ -62,10 +70,18 @@ aInstr :: { A.Exp L.Range }
   | '@' M           { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' D           { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' DM          { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' MD          { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' A           { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' AM          { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' MA          { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' AD          { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' DA          { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' ADM         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' AMD         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' DAM         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' MAD         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' DMA         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
+  | '@' MDA         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
 
   | '@' JGT         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
   | '@' JEQ         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
@@ -76,64 +92,72 @@ aInstr :: { A.Exp L.Range }
   | '@' JMP         { A.EAInstr (L.rtRange $1 <-> L.rtRange $2) (unTok $2 (\_ (L.Identifier id) -> A.Symbol id)) }
 
 dest
-  : M '='   { $1 }
-  | D '='   { $1 }
-  | DM '='  { $1 }
-  | A '='   { $1 }
-  | AM '='  { $1 }
-  | AD '='  { $1 }
-  | ADM '=' { $1 }
+  : A   '=' { ($1, A.Dest True  False False) }
+  | D   '=' { ($1, A.Dest False True  False) }
+  | M   '=' { ($1, A.Dest False False True) }
+  | AD  '=' { ($1, A.Dest True  True  False) }
+  | DA  '=' { ($1, A.Dest True  True  False) }
+  | DM  '=' { ($1, A.Dest False True  True) }
+  | MD  '=' { ($1, A.Dest False True  True) }
+  | AM  '=' { ($1, A.Dest True  False True) }
+  | MA  '=' { ($1, A.Dest True  False True) }
+  | ADM '=' { ($1, A.Dest True  True  True) }
+  | AMD '=' { ($1, A.Dest True  True  True) }
+  | DAM '=' { ($1, A.Dest True  True  True) }
+  | MAD '=' { ($1, A.Dest True  True  True) }
+  | DMA '=' { ($1, A.Dest True  True  True) }
+  | MDA '=' { ($1, A.Dest True  True  True) }
 
 comp0
-  : '0'       { $1 }
-  | '1'       { $1 }
-  | '-' '1'   { $1 <-<>->> [$2] }
-  | D         { $1 }
-  | A         { $1 }
-  | '!' D     { $1 <-<>->> [$2] }
-  | '!' A     { $1 <-<>->> [$2] }
-  | '-' D     { $1 <-<>->> [$2] }
-  | '-' A     { $1 <-<>->> [$2] }
-  | D '+' '1' { $1 <-<>->> [$2,$3] }
-  | A '+' '1' { $1 <-<>->> [$2,$3] }
-  | D '-' '1' { $1 <-<>->> [$2,$3] }
-  | A '-' '1' { $1 <-<>->> [$2,$3] }
-  | D '+' A   { $1 <-<>->> [$2,$3] }
-  | D '-' A   { $1 <-<>->> [$2,$3] }
-  | A '-' D   { $1 <-<>->> [$2,$3] }
-  | D '&' A   { $1 <-<>->> [$2,$3] }
-  | D '|' A   { $1 <-<>->> [$2,$3] }
+  : '0'       { ($1,                  A.Comp True   False True  False True  False) }
+  | '1'       { ($1,                  A.Comp True   True  True  True  True  True) }
+  | '-' '1'   { ($1 <-<>->> [$2],     A.Comp True   True  True  False True  False) }
+  | D         { ($1,                  A.Comp False  False True  True  False False) }
+  | A         { ($1,                  A.Comp True   True  False False False False) }
+  | '!' D     { ($1 <-<>->> [$2],     A.Comp False  False True  True  False True) }
+  | '!' A     { ($1 <-<>->> [$2],     A.Comp True   True  False False True  True) }
+  | '-' D     { ($1 <-<>->> [$2],     A.Comp False  False True  True  True  True) }
+  | '-' A     { ($1 <-<>->> [$2],     A.Comp True   True  False False True  True) }
+  | D '+' '1' { ($1 <-<>->> [$2,$3],  A.Comp False  True  True  True  True  True) }
+  | A '+' '1' { ($1 <-<>->> [$2,$3],  A.Comp True   True  False True  True  True) }
+  | D '-' '1' { ($1 <-<>->> [$2,$3],  A.Comp False  False True  True  True  False) }
+  | A '-' '1' { ($1 <-<>->> [$2,$3],  A.Comp True   True  False False True  False) }
+  | D '+' A   { ($1 <-<>->> [$2,$3],  A.Comp False  False False False True  False) }
+  | D '-' A   { ($1 <-<>->> [$2,$3],  A.Comp False  True  False False True  True) }
+  | A '-' D   { ($1 <-<>->> [$2,$3],  A.Comp False  False False True  True  True) }
+  | D '&' A   { ($1 <-<>->> [$2,$3],  A.Comp False  False False False False False) }
+  | D '|' A   { ($1 <-<>->> [$2,$3],  A.Comp False  True  False True  False True) }
 
 comp1
-  : M         { $1 }
-  | '!' M     { $1 <-<>->> [$2] }
-  | '-' M     { $1 <-<>->> [$2] }
-  | M '+' '1' { $1 <-<>->> [$2,$3] }
-  | M '-' '1' { $1 <-<>->> [$2,$3] }
-  | D '+' M   { $1 <-<>->> [$2,$3] }
-  | D '-' M   { $1 <-<>->> [$2,$3] }
-  | M '-' D   { $1 <-<>->> [$2,$3] }
-  | D '&' M   { $1 <-<>->> [$2,$3] }
-  | D '|' M   { $1 <-<>->> [$2,$3] }
+  : M         { ($1,                  A.Comp True   True  False False False False) }
+  | '!' M     { ($1 <-<>->> [$2],     A.Comp True   True  False False False  True) }
+  | '-' M     { ($1 <-<>->> [$2],     A.Comp True   True  False False True  True) }
+  | M '+' '1' { ($1 <-<>->> [$2,$3],  A.Comp True   True  False True  True  True) }
+  | M '-' '1' { ($1 <-<>->> [$2,$3],  A.Comp True   True  False False True  False) }
+  | D '+' M   { ($1 <-<>->> [$2,$3],  A.Comp False  False False False True  False) }
+  | D '-' M   { ($1 <-<>->> [$2,$3],  A.Comp False  True  False False True  True) }
+  | M '-' D   { ($1 <-<>->> [$2,$3],  A.Comp False  False False True  True  True) }
+  | D '&' M   { ($1 <-<>->> [$2,$3],  A.Comp False  False False False False False) }
+  | D '|' M   { ($1 <-<>->> [$2,$3],  A.Comp False  True  False True  False True) }
 
-comp :: { (Bool, L.RangedToken) }
+comp
   : comp0 { (False,$1) }
   | comp1 { (True ,$1) }
 
 jump
-  : ';' JGT { $2 }
-  | ';' JEQ { $2 }
-  | ';' JGE { $2 }
-  | ';' JLT { $2 }
-  | ';' JNE { $2 }
-  | ';' JLE { $2 }
-  | ';' JMP { $2 }
+  : ';' JGT { ($2, A.Jump False False True) }
+  | ';' JEQ { ($2, A.Jump False True  False) }
+  | ';' JGE { ($2, A.Jump False True  True) }
+  | ';' JLT { ($2, A.Jump True  False False) }
+  | ';' JNE { ($2, A.Jump True  False True) }
+  | ';' JLE { ($2, A.Jump True  True  False) }
+  | ';' JMP { ($2, A.Jump True  True  True) }
 
 cInstr :: { A.Exp L.Range }
-  : comp            { A.ECInstr (L.rtRange (snd $1)) (A.CInstr (fst $1) Nothing (unTok (snd $1) extractValue) Nothing) } 
-  | dest comp       { A.ECInstr (L.rtRange $1 <-> L.rtRange (snd $2)) (A.CInstr (fst $2) (Just (unTok $1 extractValue)) (unTok (snd $2) extractValue) Nothing) } 
-  | comp jump       { A.ECInstr (L.rtRange (snd $1) <-> L.rtRange $2) (A.CInstr (fst $1) Nothing (unTok (snd $1) extractValue) (Just (unTok $2 extractValue))) } 
-  | dest comp jump  { A.ECInstr (L.rtRange $1 <-> L.rtRange $3) (A.CInstr (fst $2) (Just (unTok $1 extractValue)) (unTok (snd $2) extractValue) (Just (unTok $3 extractValue))) } 
+  : comp            { A.ECInstr (L.rtRange (fst $ snd $1))                        (A.CInstr (fst $1) A.emptyDest  (snd $ snd $1) A.emptyJump) } 
+  | dest comp       { A.ECInstr (L.rtRange (fst $1) <-> L.rtRange (fst $ snd $2)) (A.CInstr (fst $2) (snd $1)     (snd $ snd $2) A.emptyJump) } 
+  | comp jump       { A.ECInstr (L.rtRange (fst $ snd $1) <-> L.rtRange (fst $2)) (A.CInstr (fst $1) A.emptyDest  (snd $ snd $1) (snd $2)) } 
+  | dest comp jump  { A.ECInstr (L.rtRange (fst $1) <-> L.rtRange (fst $3))       (A.CInstr (fst $2) (snd $1)     (snd $ snd $2) (snd $3)) } 
 
 label :: { A.Exp L.Range }
   : '(' identifier ')'  { A.ELabel (L.rtRange $1 <-> L.rtRange $3) (unTok $2 extractValue) }
@@ -200,7 +224,14 @@ L.Range a1 _ <-> L.Range _ b2 = L.Range a1 b2
 (<-:->) :: A.Exp L.Range -> [A.Exp L.Range] -> [A.Exp L.Range]
 e1 <-:-> [] = [e1]
 e1@(A.EAInstr r1 _) <-:-> e2@((A.EAInstr r2 _):_) = (e1, r1) <>:<> (e2, r2)
-e1@(A.ELabel r1 _) <-:-> e2@((A.ELabel r2 _):_) = (e1, r1) <>:<> (e2, r2)
+e1@(A.EAInstr r1 _) <-:-> e2@((A.ELabel r2 _):_)  = (e1, r1) <>:<> (e2, r2)
+e1@(A.EAInstr r1 _) <-:-> e2@((A.ECInstr r2 _):_) = (e1, r1) <>:<> (e2, r2)
+e1@(A.ELabel r1 _)  <-:-> e2@((A.ELabel r2 _):_)  = (e1, r1) <>:<> (e2, r2)
+e1@(A.ELabel r1 _)  <-:-> e2@((A.EAInstr r2 _):_) = (e1, r1) <>:<> (e2, r2)
+e1@(A.ELabel r1 _)  <-:-> e2@((A.ECInstr r2 _):_) = (e1, r1) <>:<> (e2, r2)
+e1@(A.ECInstr r1 _) <-:-> e2@((A.ECInstr r2 _):_) = (e1, r1) <>:<> (e2, r2)
+e1@(A.ECInstr r1 _) <-:-> e2@((A.EAInstr r2 _):_) = (e1, r1) <>:<> (e2, r2)
+e1@(A.ECInstr r1 _) <-:-> e2@((A.ELabel r2 _):_)  = (e1, r1) <>:<> (e2, r2)
 
 parse :: ByteString -> Either String [A.Exp L.Range]
 parse input = runAlex input parseHasm

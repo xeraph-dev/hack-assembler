@@ -1,8 +1,9 @@
-module HackAssembler.ParserSpec (spec) where
+module HackAssembler.ParserSpec (spec, parseW, ExpW(..)) where
 
 import           Data.ByteString.Lazy.Char8 (ByteString)
 import           HackAssembler.AST          (AInstr (..), CInstr (CInstr),
-                                             Exp (..))
+                                             Comp (..), Dest (..), Exp (..),
+                                             Jump (..), emptyDest, emptyJump)
 import           HackAssembler.Lexer        (Range)
 import           HackAssembler.Parser       (parse)
 import           Test.Hspec                 (Spec, describe, it, shouldBe)
@@ -31,60 +32,68 @@ spec = do
 
   describe "C-Instruction" $ do
     describe "dest" $ do
-      it "  M=A"  $ parseW "M=A"    `shouldBe` Right [ECInstrW (CInstr False (Just "M") "A" Nothing)]
-      it "  D=A"  $ parseW "D=A"    `shouldBe` Right [ECInstrW (CInstr False (Just "D") "A" Nothing)]
-      it " DM=A"  $ parseW "DM=A"   `shouldBe` Right [ECInstrW (CInstr False (Just "DM") "A" Nothing)]
-      it "  A=A"  $ parseW "A=A"    `shouldBe` Right [ECInstrW (CInstr False (Just "A") "A" Nothing)]
-      it " AM=A"  $ parseW "AM=A"   `shouldBe` Right [ECInstrW (CInstr False (Just "AM") "A" Nothing)]
-      it " AD=A"  $ parseW "AD=A"   `shouldBe` Right [ECInstrW (CInstr False (Just "AD") "A" Nothing)]
-      it "ADM=A"  $ parseW "ADM=A"  `shouldBe` Right [ECInstrW (CInstr False (Just "ADM") "A" Nothing)]
+      it "  M=A"  $ parseW "M=A"    `shouldBe` Right [ECInstrW (CInstr False (Dest False  False True)   (Comp True True False False False False) emptyJump)]
+      it "  D=A"  $ parseW "D=A"    `shouldBe` Right [ECInstrW (CInstr False (Dest False  True  False)  (Comp True True False False False False) emptyJump)]
+      it " DM=A"  $ parseW "DM=A"   `shouldBe` Right [ECInstrW (CInstr False (Dest False  True  True)   (Comp True True False False False False) emptyJump)]
+      it " MD=A"  $ parseW "MD=A"   `shouldBe` Right [ECInstrW (CInstr False (Dest False  True  True)   (Comp True True False False False False) emptyJump)]
+      it "  A=A"  $ parseW "A=A"    `shouldBe` Right [ECInstrW (CInstr False (Dest True   False False)  (Comp True True False False False False) emptyJump)]
+      it " AM=A"  $ parseW "AM=A"   `shouldBe` Right [ECInstrW (CInstr False (Dest True   False True)   (Comp True True False False False False) emptyJump)]
+      it " MA=A"  $ parseW "MA=A"   `shouldBe` Right [ECInstrW (CInstr False (Dest True   False True)   (Comp True True False False False False) emptyJump)]
+      it " AD=A"  $ parseW "AD=A"   `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  False)  (Comp True True False False False False) emptyJump)]
+      it " DA=A"  $ parseW "DA=A"   `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  False)  (Comp True True False False False False) emptyJump)]
+      it "ADM=A"  $ parseW "ADM=A"  `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  True)   (Comp True True False False False False) emptyJump)]
+      it "AMD=A"  $ parseW "AMD=A"  `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  True)   (Comp True True False False False False) emptyJump)]
+      it "DAM=A"  $ parseW "DAM=A"  `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  True)   (Comp True True False False False False) emptyJump)]
+      it "MAD=A"  $ parseW "MAD=A"  `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  True)   (Comp True True False False False False) emptyJump)]
+      it "DMA=A"  $ parseW "DMA=A"  `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  True)   (Comp True True False False False False) emptyJump)]
+      it "MDA=A"  $ parseW "MDA=A"  `shouldBe` Right [ECInstrW (CInstr False (Dest True   True  True)   (Comp True True False False False False) emptyJump)]
 
     describe "jump" $ do
-      it "A;JGT"  $ parseW "A;JGT"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JGT"))]
-      it "A;JEQ"  $ parseW "A;JEQ"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JEQ"))]
-      it "A;JGE"  $ parseW "A;JGE"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JGE"))]
-      it "A;JLT"  $ parseW "A;JLT"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JLT"))]
-      it "A;JNE"  $ parseW "A;JNE"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JNE"))]
-      it "A;JLE"  $ parseW "A;JLE"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JLE"))]
-      it "A;JMP"  $ parseW "A;JMP"  `shouldBe` Right [ECInstrW (CInstr False Nothing "A" (Just "JMP"))]
+      it "A;JGT"  $ parseW "A;JGT"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump False False True))]
+      it "A;JEQ"  $ parseW "A;JEQ"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump False True  False))]
+      it "A;JGE"  $ parseW "A;JGE"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump False True  True))]
+      it "A;JLT"  $ parseW "A;JLT"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump True  False False))]
+      it "A;JNE"  $ parseW "A;JNE"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump True  False True))]
+      it "A;JLE"  $ parseW "A;JLE"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump True  True  False))]
+      it "A;JMP"  $ parseW "A;JMP"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) (Jump True  True  True))]
 
     describe "dest comp jump" $ do
-      it "M=A;JGT"  $ parseW "M=A;JGT"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "A" (Just "JGT"))]
+      it "M=A;JGT"  $ parseW "M=A;JGT"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True True False False False False) (Jump False False True))]
 
     describe "comp" $ do
-      it "M"  $ parseW "M"  `shouldBe` Right [ECInstrW (CInstr True Nothing "M" Nothing)]
+      it "A"  $ parseW "A"  `shouldBe` Right [ECInstrW (CInstr False emptyDest (Comp True True False False False False) emptyJump)]
 
       describe "a -> 0" $ do
-        it "M=0"    $ parseW "M=0"    `shouldBe` Right [ECInstrW (CInstr False (Just "M") "0" Nothing)]
-        it "M=1"    $ parseW "M=1"    `shouldBe` Right [ECInstrW (CInstr False (Just "M") "1" Nothing)]
-        it "M=-1"   $ parseW "M=-1"   `shouldBe` Right [ECInstrW (CInstr False (Just "M") "-1" Nothing)]
-        it "M=D"    $ parseW "M=D"    `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D" Nothing)]
-        it "M=A"    $ parseW "M=A"    `shouldBe` Right [ECInstrW (CInstr False (Just "M") "A" Nothing)]
-        it "M=!D"   $ parseW "M=!D"   `shouldBe` Right [ECInstrW (CInstr False (Just "M") "!D" Nothing)]
-        it "M=!A"   $ parseW "M=!A"   `shouldBe` Right [ECInstrW (CInstr False (Just "M") "!A" Nothing)]
-        it "M=-D"   $ parseW "M=-D"   `shouldBe` Right [ECInstrW (CInstr False (Just "M") "-D" Nothing)]
-        it "M=-A"   $ parseW "M=-A"   `shouldBe` Right [ECInstrW (CInstr False (Just "M") "-A" Nothing)]
-        it "M=D+1"  $ parseW "M=D+1"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D+1" Nothing)]
-        it "M=A+1"  $ parseW "M=A+1"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "A+1" Nothing)]
-        it "M=D-1"  $ parseW "M=D-1"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D-1" Nothing)]
-        it "M=A-1"  $ parseW "M=A-1"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "A-1" Nothing)]
-        it "M=D+A"  $ parseW "M=D+A"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D+A" Nothing)]
-        it "M=D-A"  $ parseW "M=D-A"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D-A" Nothing)]
-        it "M=A-D"  $ parseW "M=A-D"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "A-D" Nothing)]
-        it "M=D&A"  $ parseW "M=D&A"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D&A" Nothing)]
-        it "M=D|A"  $ parseW "M=D|A"  `shouldBe` Right [ECInstrW (CInstr False (Just "M") "D|A" Nothing)]
+        it "M=0"    $ parseW "M=0"    `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   False True  False True  False) emptyJump)]
+        it "M=1"    $ parseW "M=1"    `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  True  True  True  True) emptyJump)]
+        it "M=-1"   $ parseW "M=-1"   `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  True  False True  False) emptyJump)]
+        it "M=D"    $ parseW "M=D"    `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False True  True  False False) emptyJump)]
+        it "M=A"    $ parseW "M=A"    `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  False False False False) emptyJump)]
+        it "M=!D"   $ parseW "M=!D"   `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False True  True  False True) emptyJump)]
+        it "M=!A"   $ parseW "M=!A"   `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  False False True  True) emptyJump)]
+        it "M=-D"   $ parseW "M=-D"   `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False True  True  True  True) emptyJump)]
+        it "M=-A"   $ parseW "M=-A"   `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  False False True  True) emptyJump)]
+        it "M=D+1"  $ parseW "M=D+1"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  True  True  True  True  True) emptyJump)]
+        it "M=A+1"  $ parseW "M=A+1"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  False True  True  True) emptyJump)]
+        it "M=D-1"  $ parseW "M=D-1"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False True  True  True  False) emptyJump)]
+        it "M=A-1"  $ parseW "M=A-1"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp True   True  False False True  False) emptyJump)]
+        it "M=D+A"  $ parseW "M=D+A"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False False False True  False) emptyJump)]
+        it "M=D-A"  $ parseW "M=D-A"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  True  False False True  True) emptyJump)]
+        it "M=A-D"  $ parseW "M=A-D"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False False True  True  True) emptyJump)]
+        it "M=D&A"  $ parseW "M=D&A"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  False False False False False) emptyJump)]
+        it "M=D|A"  $ parseW "M=D|A"  `shouldBe` Right [ECInstrW (CInstr False (Dest False False True) (Comp False  True  False True  False True) emptyJump)]
 
       describe "a -> 1" $ do
-        it "M=M"    $ parseW "M=M"    `shouldBe` Right [ECInstrW (CInstr True (Just "M") "M" Nothing)]
-        it "M=!M"   $ parseW "M=!M"   `shouldBe` Right [ECInstrW (CInstr True (Just "M") "!M" Nothing)]
-        it "M=-M"   $ parseW "M=-M"   `shouldBe` Right [ECInstrW (CInstr True (Just "M") "-M" Nothing)]
-        it "M=M+1"  $ parseW "M=M+1"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "M+1" Nothing)]
-        it "M=M-1"  $ parseW "M=M-1"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "M-1" Nothing)]
-        it "M=D+M"  $ parseW "M=D+M"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "D+M" Nothing)]
-        it "M=D-M"  $ parseW "M=D-M"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "D-M" Nothing)]
-        it "M=M-D"  $ parseW "M=M-D"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "M-D" Nothing)]
-        it "M=D&M"  $ parseW "M=D&M"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "D&M" Nothing)]
-        it "M=D|M"  $ parseW "M=D|M"  `shouldBe` Right [ECInstrW (CInstr True (Just "M") "D|M" Nothing)]
+        it "M=M"    $ parseW "M=M"    `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp True   True  False False False False) emptyJump)]
+        it "M=!M"   $ parseW "M=!M"   `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp True   True  False False False  True) emptyJump)]
+        it "M=-M"   $ parseW "M=-M"   `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp True   True  False False True  True) emptyJump)]
+        it "M=M+1"  $ parseW "M=M+1"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp True   True  False True  True  True) emptyJump)]
+        it "M=M-1"  $ parseW "M=M-1"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp True   True  False False True  False) emptyJump)]
+        it "M=D+M"  $ parseW "M=D+M"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp False  False False False True  False) emptyJump)]
+        it "M=D-M"  $ parseW "M=D-M"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp False  True  False False True  True) emptyJump)]
+        it "M=M-D"  $ parseW "M=M-D"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp False  False False True  True  True) emptyJump)]
+        it "M=D&M"  $ parseW "M=D&M"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp False  False False False False False) emptyJump)]
+        it "M=D|M"  $ parseW "M=D|M"  `shouldBe` Right [ECInstrW (CInstr True (Dest False False True) (Comp False  True  False True  False True) emptyJump)]
 
   describe "Label" $ do
     it "(Label)"  $ parseW "(LABEL)" `shouldBe` Right [ELabelW "LABEL"]
