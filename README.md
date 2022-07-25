@@ -9,5 +9,7 @@ An Assembler for Hack Assembly. ([nand2tetris](https://www.nand2tetris.org/))
 Produce hack binary `<file_name>.hack`
 
 ```shell
-hasm <file_name>.asm
+hasm -i <file_name>.asm
 ```
+
+`hasm -h` for more help
