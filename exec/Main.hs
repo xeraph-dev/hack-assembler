@@ -4,16 +4,24 @@
 
 module Main (main) where
 
-import           Control.Monad.IO.Class   (MonadIO (liftIO))
-import           System.Console.ANSI      (clearScreen, setCursorPosition)
-import           System.Console.CmdArgs   (Data, Default (def), Typeable,
-                                           cmdArgs, details, explicit, help,
-                                           helpArg, name, program, summary,
-                                           typFile, (&=))
-import           System.Console.Haskeline (InputT, Settings (Settings),
-                                           autoAddHistory, complete,
-                                           getInputLine, historyFile,
-                                           noCompletion, outputStrLn, runInputT)
+import           Control.Monad.IO.Class     (MonadIO (liftIO))
+import           Data.ByteString.Lazy.Char8 (ByteString)
+import qualified Data.ByteString.Lazy.Char8 as BS
+import           HackAssembler.Assembler    (assemble)
+import           System.Console.ANSI        (Color (Red),
+                                             ColorIntensity (Vivid),
+                                             ConsoleLayer (Foreground),
+                                             SGR (Reset, SetColor), clearScreen,
+                                             setCursorPosition, setSGR)
+import           System.Console.CmdArgs     (Data, Default (def), Typeable,
+                                             cmdArgs, details, explicit, help,
+                                             helpArg, name, program, summary,
+                                             typFile, (&=))
+import           System.Console.Haskeline   (InputT, Settings (Settings),
+                                             autoAddHistory, complete,
+                                             getInputLine, historyFile,
+                                             noCompletion, outputStrLn,
+                                             runInputT)
 
 data Args
   = Args
@@ -36,31 +44,32 @@ args
   &= helpArg [explicit, name "h", name "help"]
 
 
-process :: String -> IO ()
-process "" = putStr ""
-process str = do
-  let res = str
-  putStrLn res
+process :: (ByteString -> Either String ByteString) -> String -> IO ()
+process _ "" = return ()
+process f str = do
+  case f $ BS.pack str of
+    Left e -> liftIO (setSGR [SetColor Foreground Vivid Red] >> putStrLn e >> setSGR [Reset])
+    Right h -> BS.putStr h
 
-repl :: InputT IO ()
-repl = do
+repl :: (ByteString -> Either String ByteString) -> InputT IO ()
+repl f = do
   minput <- getInputLine "\ESC[35m>>>\ESC[0m " -- Magenta, ansi-terminal methods does not work with getInputLine
 
 
   case minput of
-    Nothing       -> outputStrLn "Closing"
-    Just "clear!" -> liftIO (clearScreen >> setCursorPosition 0 0) >> repl
-    Just input    -> liftIO (process input) >> repl
+    Nothing       -> outputStrLn "\ESC[33mLeaving\ESC[0m" -- Yellow, ansi-terminal methods does not work with outputStrLn
+    Just "clear!" -> liftIO (clearScreen >> setCursorPosition 0 0) >> repl f
+    Just input    -> liftIO (process f input) >> repl f
 
-replLoop :: IO ()
-replLoop
+replLoop :: (ByteString -> Either String ByteString) -> IO ()
+replLoop f
   =  clearScreen
   >> setCursorPosition 0 0
   >> runInputT Settings
     { historyFile = Nothing
     , autoAddHistory = True
     , complete = noCompletion
-    } repl
+    } (repl f)
 
 
 replaceExt :: String -> String -> String
@@ -68,8 +77,14 @@ replaceExt x = ((reverse . dropWhile (/= '.') $ reverse x) <>)
 
 main :: IO ()
 main = do
-  progArgs@Args {argsInput=input} <- cmdArgs args
+  progArgs@Args {argsInput=input, argsOutput=output'} <- cmdArgs args
+  let output = if not $ null output' then output' else replaceExt input "hack"
 
   if null input || argsRepl progArgs
-    then replLoop
-    else putStrLn $ replaceExt input "hack"
+    then replLoop assemble
+    else do
+      file <- readFile input
+      case assemble $ BS.pack file of
+        Left e -> liftIO (setSGR [SetColor Foreground Vivid Red] >> putStrLn e >> setSGR [Reset])
+        Right h -> BS.writeFile output h
+
