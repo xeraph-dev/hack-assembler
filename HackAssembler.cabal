@@ -1,0 +1,88 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.7.
+--
+-- see: https://github.com/sol/hpack
+
+name:           HackAssembler
+version:        1.0.0
+synopsis:       An Assembler for Hack Assembly
+category:       Language
+homepage:       https://github.com/adrianrl99/hack-assembler#readme
+bug-reports:    https://github.com/adrianrl99/hack-assembler/issues
+author:         Adrian
+maintainer:     Adrian
+copyright:      2022 Adrian
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    LICENSE
+
+source-repository head
+  type: git
+  location: https://github.com/adrianrl99/hack-assembler
+
+library
+  exposed-modules:
+      HackAssembler.Assembler
+      HackAssembler.AST
+      HackAssembler.Eval
+      HackAssembler.Lexer
+      HackAssembler.Parser
+  other-modules:
+      Paths_HackAssembler
+  hs-source-dirs:
+      src
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -Wall -Wextra -Wcompat -fwarn-tabs -Widentities -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -Wnoncanonical-monad-instances -Wunused-packages -fwrite-ide-info -hiedir=.hie -Wmissing-export-lists -Wpartial-fields -fhide-source-paths
+  build-tools:
+      alex
+    , happy
+  build-depends:
+      array
+    , base
+    , bytestring
+    , containers
+  default-language: Haskell2010
+
+executable hasm
+  main-is: exec/Main.hs
+  other-modules:
+      Paths_HackAssembler
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -Wall -Wextra -Wcompat -fwarn-tabs -Widentities -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -Wnoncanonical-monad-instances -Wunused-packages -fwrite-ide-info -hiedir=.hie -Wmissing-export-lists -Wpartial-fields -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HackAssembler
+    , ansi-terminal
+    , base
+    , bytestring
+    , cmdargs
+    , haskeline
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      HackAssembler.AssemblerSpec
+      HackAssembler.EvalSpec
+      HackAssembler.LexerSpec
+      HackAssembler.ParserSpec
+      Paths_HackAssembler
+  hs-source-dirs:
+      test
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -Wall -Wextra -Wcompat -fwarn-tabs -Widentities -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -Wnoncanonical-monad-instances -Wunused-packages -fwrite-ide-info -hiedir=.hie -Wmissing-export-lists -Wpartial-fields -fhide-source-paths -threaded -rtsopts -with-rtsopts=-N
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  build-depends:
+      HackAssembler
+    , base
+    , bytestring
+    , hspec
+  default-language: Haskell2010

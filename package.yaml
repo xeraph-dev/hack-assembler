@@ -1,0 +1,62 @@
+spec-version: 0.34
+name: HackAssembler
+version: 1.0.0
+synopsis: An Assembler for Hack Assembly
+category: Language
+
+homepage: https://github.com/adrianrl99/hack-assembler#readme
+bug-reports: https://github.com/adrianrl99/hack-assembler/issues
+
+author: Adrian
+maintainer: Adrian
+copyright: 2022 Adrian
+
+github: adrianrl99/hack-assembler
+
+extra-source-files:
+  - README.md
+  - LICENSE
+
+default-extensions:
+  - OverloadedStrings
+
+dependencies:
+  - base
+
+ghc-options: -Wall -Wextra -Wcompat -fwarn-tabs -Widentities
+  -Wincomplete-uni-patterns -Wincomplete-record-updates
+  -Wredundant-constraints -Wnoncanonical-monad-instances
+  -Wunused-packages -fwrite-ide-info -hiedir=.hie
+  -Wmissing-export-lists -Wpartial-fields -fhide-source-paths
+
+library:
+  source-dirs: src
+  dependencies:
+    - array
+    - bytestring
+    - containers
+  build-tools:
+    - alex
+    - happy
+
+executables:
+  hasm:
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    main: exec/Main.hs
+    dependencies:
+      - HackAssembler
+      - ansi-terminal
+      - bytestring
+      - cmdargs
+      - haskeline
+
+tests:
+  spec:
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+    main: Spec.hs
+    source-dirs: test
+    dependencies:
+      - HackAssembler
+      - bytestring
+      - hspec
+    build-tools: hspec-discover
